@@ -297,12 +297,11 @@ const HASH_INDEX_T HashTable<K,V,Prober,Hash,KEqual>::CAPACITIES[] =
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
 HashTable<K,V,Prober,Hash,KEqual>::HashTable(
     double resizeAlpha, const Prober& prober, const Hasher& hash, const KEqual& kequal)
-       :  hash_(hash), kequal_(kequal), prober_(prober), mIndex_(0), totalProbes_(0), elementCount_(0)
+       :  hash_(hash), kequal_(kequal),prober_(prober), totalProbes_(0), mIndex_(0), resizeAlpha_(resizeAlpha), elementCount_(0)
 {
-    // Initialize any other data members as necessary
-		table_.assign(CAPACITIES[mIndex_], nullptr);
-
+    table_.assign(CAPACITIES[mIndex_], nullptr);
 }
+
 
 // To be completed
 template<typename K, typename V, typename Prober, typename Hash, typename KEqual>
@@ -330,22 +329,23 @@ template<typename K, typename V, typename Prober, typename Hash, typename KEqual
 void HashTable<K,V,Prober,Hash,KEqual>::insert(const ItemType& p)
 {
 
-	if((double)(elementCount_+1)/table_.size()> resizeAlpha_){
-		resize();//resize if needed
-	}
-	HASH_INDEX_T idx = probe(p.first);
-	if(idx == Prober::npos){
-		throw std::logic_error("HashTable full");
-	}
+	if ( static_cast<double>(elementCount_ + 1) / table_.size() > resizeAlpha_ ) {
+        resize();
+    }
 
-		if(table_[idx]==nullptr|| table_[idx]->deleted){
-			delete table_[idx];
-			table_[idx]= new HashItem(p);
-			elementCount_++;
-		} else{
-			table_[idx]->item.second = p.second;
-		
-	}
+    HASH_INDEX_T idx = probe(p.first);
+    if (idx == Prober::npos) {
+        throw std::logic_error("HashTable full");
+    }
+    if (table_[idx] == nullptr || table_[idx]->deleted) {
+        delete table_[idx];                 
+        table_[idx] = new HashItem(p);     
+        elementCount_++;                    
+    }
+    else {
+        table_[idx]->item.second = p.second;   
+    }
+    
 }
 
 // To be completed
